@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="assets/style.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+</head>
+
+<body class="">
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="siswa.html">Data Siswa</a></li>
+            <li><a href="kecamatan.html">Data Kecamatan</a></li>
+            <li><a href="kabupaten.html">Data Kabupaten</a></li>
+            <li class="slide"></li>
+        </ul>
+    </nav>
+    <section class="page">
+        <main class="main page__main">
+            <h1>Input Kecamatan</h1>
+            <div id="message"></div>
+            <form class="form main__form" id="formKecamatan" method="POST">
+                <div class="form__linput">
+                    <label class="form__label" for="kecamatan">Nama Kecamatan</label>
+                    <input class="form__input" type="text" id="kecamatan" name="kecamatan" placeholder="kecamatan..." />
+                </div>
+
+                <div class="form__linput">
+                    <label class="form__label" for="kabupaten-select">Kabupaten</label>
+                    <select class="form__select" id="kabupaten-select" name="kabupaten">
+                        <option value="">Pilih kota/kabupaten</option>
+                    </select>
+                </div>
+                <button class="primary-btn form__btn" type="submit">Submit</button>
+            </form>
+        </main>
+
+        <main class="main page__main">
+            <h1>List Kecamatan</h1>
+            <div id="messageDelete"></div>
+            <table id="myTable">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th style="width: 300px;">Nama Kecamatan</th>
+                        <th>Nama Kabupaten</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="viewKabupaten"></tbody>
+            </table>
+        </main>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+
+    <script>
+        (function ($) {
+            // variables
+            (elementWidth = $("ul").width()),
+                (containerWidth = $("nav").width()),
+                (difference = elementWidth - containerWidth),
+                (finalWidth = difference * 1.5),
+                (element = $("ul"));
+
+            // active on click
+            $("li").on("click", function () {
+                $("li").removeClass("active");
+                $(this).addClass("active");
+            });
+        })(jQuery);
+    </script>
+    
+    <script>
+        // Get the message from the URL query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get("message");
+
+        // Display the message if it exists
+        if (message) {
+            document.getElementById("message").innerText = message;
+        }
+
+        const messageDelete = urlParams.get("messageDelete");
+
+        // Display the message if it exists
+        if (messageDelete) {
+            document.getElementById("messageDelete").innerText = messageDelete;
+        }
+    </script>
+    <script>
+        $.ajax({
+            type: "get",
+            url: "http://localhost:3000/kabupaten",
+            success: function (response) {
+                let html = "";
+                response.forEach((element) => {
+                    html += `<option value="${element.id_kabupaten}">${element.kabupaten}</option>`;
+                });
+                $("#kabupaten-select").append(html);
+            },
+        });
+        function fetchData() {
+            $.ajax({
+                type: "get",
+                url: "http://localhost:3000/kecamatan",
+                success: function (response) {
+                    let html = "";
+                    let no = 0;
+                    response.forEach((element) => {
+                        no++;
+                        html += `<tr>
+                          <td>${no}</td>
+                          <td>${element.kecamatan}</td>
+                          <td>${element.kabupaten}</td>
+                          <td>
+                              <a class="edit-btn" href="http://localhost:3000/kecamatan_single.html?id_kecamatan=${element.id_kecamatan}">Edit</a>
+                          </td>
+                          <td>
+                              <form id="deleteKecamatan">
+                                  <input type="hidden" name="id_kecamatan" value="${element.id_kecamatan}">
+                                  <input class="hapus-btn" type="submit" value="Delete">
+                              </form>
+                          </td>
+                      </tr>`;
+                    });
+                    $("#viewKabupaten").html(html);
+                    $("#myTable").DataTable();
+                },
+            });
+        }
+
+        $(document).on("submit", "#formKecamatan", function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const formData = {
+                kecamatan: $('input[name="kecamatan').val(),
+                kabupaten_id: $('select[name="kabupaten"]').val(),
+            };
+
+            $.ajax({
+                url: "http://localhost:3000/kecamatan",
+                method: "post",
+                data: formData,
+                success: function (response) {
+                    // Show success message
+                    $("#message").text("kecamatan berhasil ditambahkan");
+                    $("#formKecamatan")[0].reset();
+                    fetchData();
+                },
+                error: function(error) {
+                    $('#message').text('Error: ' + error.responseText);
+                    alert(error.responseText);
+                }
+            });
+        });
+
+        $(document).on("submit", "#deleteKecamatan", function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const formData = {
+                id_kecamatan: $(this).find('input[name="id_kecamatan').val(),
+            };
+            $.ajax({
+                url: "http://localhost:3000/kecamatan/delete",
+                method: "delete",
+                data: formData,
+                success: function (response) {
+                    // Show success message
+                    $("#messageDelete").text("Kecamatan berhasil dihapus");
+                    fetchData();
+                },
+                error: function (error) {
+                    console.error(error);
+                },
+            });
+        });
+
+        fetchData();
+    </script>
+</body>
+
+</html>

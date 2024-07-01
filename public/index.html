@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Poolpack Test</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+
+<body class="page">
+    <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="siswa.html">Data Siswa</a></li>
+          <li><a href="kecamatan.html">Data Kecamatan</a></li>
+          <li><a href="kabupaten.html">Data Kabupaten</a></li>
+          <li class="slide"></li>
+        </ul>
+      </nav>
+      <section>
+        <div class="title"><span>Fajar Alam Rahmat Sidik</span><span></span></div>
+      </section>
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+        (function($){
+            // variables
+            elementWidth = $('ul').width(),
+            containerWidth = $('nav').width(),
+            difference = elementWidth-containerWidth,
+            finalWidth = difference * 1.5,
+            element = $('ul');
+            
+            // active on click
+            $('li').on('click', function(){
+                $('li').removeClass('active');
+                $(this).addClass('active');
+            });
+            
+        })(jQuery);
+    </script>
+</body>
+
+</html>

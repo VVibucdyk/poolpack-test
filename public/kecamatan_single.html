@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      @import "https://unpkg.com/open-props";
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .page {
+        color: var(--gray-9);
+        background-color: var(--gray-0);
+        display: grid;
+        grid-template-areas: "main";
+        min-height: 100vh;
+        font-family: var(--font-sans);
+      }
+      .page__mani {
+        grid-area: main;
+      }
+
+      .main {
+        display: flex;
+        flex-direction: column;
+        justify-items: center;
+        align-items: center;
+        padding: var(--size-3);
+      }
+      .main__form {
+        max-width: 30em;
+      }
+
+      .form {
+        color: var(--gray-9);
+        background-color: var(--gray-3);
+        display: grid;
+        padding: var(--size-4);
+        width: 100%;
+        border: 1px solid var(--gray-4);
+        border-radius: var(--radius-2);
+      }
+      .form__linput {
+        display: grid;
+        margin-bottom: var(--size-3);
+      }
+      .form__label {
+        margin-bottom: var(--size-2);
+      }
+      .form__input,
+      .form__select {
+        padding: 1em 0.7rem;
+        border: 1px solid var(--gray-4);
+        border-radius: var(--radius-2);
+      }
+      .form__select {
+        background: inherit;
+      }
+      .form__textarea {
+        padding: 1em 0.7rem;
+        resize: vertical;
+        border: 1px solid var(--gray-4);
+        border-radius: var(--radius-2);
+        font: inherit;
+      }
+      .form__btn {
+        margin-right: auto;
+      }
+
+      .primary-btn {
+        transition: 180ms ease-in;
+        color: var(--gray-0);
+        background-color: var(--green-9);
+        padding: 0.7em var(--size-3);
+        border: 0;
+        border-radius: var(--radius-2);
+        cursor: pointer;
+      }
+      .primary-btn:hover {
+        background-color: var(--green-6);
+      }
+    </style>
+  </head>
+  <body class="page">
+    <main class="main page__main">
+      <h1>Edit Kabupaten</h1>
+      <div id="message"></div>
+      <form class="form main__form" id="formKecamatan" method="POST">
+        <input type="hidden" name="id_kecamatan" />
+        <div class="form__linput">
+          <label class="form__label" for="kecamatan">Nama Kecamatan</label>
+          <input
+            class="form__input"
+            type="text"
+            id="kecamatan"
+            name="kecamatan"
+            placeholder="kecamatan..."
+          />
+          <select class="form__select" id="kabupaten-select" name="kabupaten">
+            <option value="">Pilih kota/kabupaten</option>
+          </select>
+        </div>
+        <button class="primary-btn form__btn" type="submit">Submit</button>
+      </form>
+    </main>
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      $(document).ready(function () {
+        // Get the kabupaten ID from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get("id_kecamatan");
+
+        $.ajax({
+          type: "get",
+          url: "http://localhost:3000/kabupaten",
+          success: function (response) {
+            let html = "";
+            response.forEach((element) => {
+              html += `<option value="${element.id_kabupaten}">${element.kabupaten}</option>`;
+            });
+            $("#kabupaten-select").append(html);
+          },
+        });
+
+        // Fetch and display the kabupaten details
+        if (id) {
+          $.ajax({
+            url: `/kecamatan/single/${id}`,
+            method: "GET",
+            success: function (response) {
+              if (response.length > 0) {
+                const kecamatan = response[0];
+                $('input[name="kecamatan"]').val(kecamatan.kecamatan);
+                $("#kabupaten-select").val(kecamatan.id_kabupaten);
+                $('input[name="id_kecamatan"]').val(kecamatan.id_kecamatan);
+              }
+            },
+            error: function (error) {
+              console.error("Error fetching kabupaten:", error);
+            },
+          });
+        }
+
+        $(document).on("submit", "#formKecamatan", function (event) {
+          event.preventDefault(); // Prevent the default form submission
+
+          const formData = {
+                id_kecamatan: $('input[name="id_kecamatan"]').val(),
+                kecamatan: $('input[name="kecamatan"]').val(),
+                kabupaten_id: $('select[name="kabupaten"]').val(),
+            };
+
+          $.ajax({
+            url: "http://localhost:3000/kecamatan/" + formData.id_kecamatan,
+            method: "put",
+            data: formData,
+            success: function (response) {
+              // Show success message
+              alert("Data berhasil diubah");
+
+              window.location.href = "kecamatan.html";
+            },
+            error: function (error) {
+              console.error(error);
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

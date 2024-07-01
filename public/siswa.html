@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Poolpack Test</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="siswa.html">Data Siswa</a></li>
+            <li><a href="kecamatan.html">Data Kecamatan</a></li>
+            <li><a href="kabupaten.html">Data Kabupaten</a></li>
+            <li class="slide"></li>
+        </ul>
+    </nav>
+    <section class="page">
+        <main class="main page__main">
+            <h1>Input Data Siswa</h1>
+            <div id="message"></div>
+            <form class="form main__form" id="siswaForm">
+                <div class="form__linput">
+                    <label class="form__label" for="fname">Nama Siswa</label>
+                    <input class="form__input" type="text" id="fname" name="fname" placeholder="Your name..." />
+                </div>
+                <div class="form__linput">
+                    <label class="form__label" for="kabupaten-select">Kota/Kabupaten</label>
+                    <select class="form__select" id="kabupaten-select" name="kabupaten">
+                        <option disabled selected value="">Pilih kota/kabupaten</option>
+                    </select>
+                </div>
+                <div class="form__linput">
+                    <label class="form__label" for="kecamatan-select">Kecamatan</label>
+                    <select class="form__select" id="kecamatan-select" name="kecamatan-select">
+                        <option disabled selected value="">Pilih kecamatan</option>
+                    </select>
+                </div>
+                <div class="form__linput">
+                    <label class="form__label" for="alamat">Alamat</label>
+                    <textarea class="form__textarea" id="alamat" name="alamat" placeholder="Aku tinggal di..."
+                        rows="7"></textarea>
+                </div>
+                <button class="primary-btn form__btn" type="submit">Submit</button>
+            </form>
+        </main>
+
+        <main class="main page__main">
+            <h1>List Siswa</h1>
+            <div id="messageDelete"></div>
+            <table id="myTable">
+                <thead>
+                    <tr>
+                        <th>Id Siswa</th>
+                        <th>Nama Siswa</th>
+                        <th>Kota/Kabupaten</th>
+                        <th>Kecamatan</th>
+                        <th>Alamat</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="viewKabupaten"></tbody>
+            </table>
+        </main>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <script>
+        (function ($) {
+            // variables
+            elementWidth = $('ul').width(),
+                containerWidth = $('nav').width(),
+                difference = elementWidth - containerWidth,
+                finalWidth = difference * 1.5,
+                element = $('ul');
+
+            // active on click
+            $('li').on('click', function () {
+                $('li').removeClass('active');
+                $(this).addClass('active');
+            });
+
+        })(jQuery);
+    </script>
+    
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+
+    <script>
+        function fetchData() {
+            $.ajax({
+                type: "get",
+                url: "http://localhost:3000/siswa",
+                success: function (response) {
+                    let html = "";
+                    let no = 0;
+                    response.forEach((element) => {
+                        no++;
+                        html += `<tr>
+                        <td>${no}</td>
+                        <td>${element.nama_siswa}</td>
+                        <td>${element.kabupaten}</td>
+                        <td>${element.kecamatan}</td>
+                        <td>${element.alamat}</td>
+                        <td>
+                            <a class="edit-btn" href="http://localhost:3000/siswa_single.html?id_siswa=${element.id_siswa}">Edit</a>
+                        </td>
+                        <td>
+                            <form id="deleteSiswa">
+                                <input type="hidden" name="id_siswa" value="${element.id_siswa}">
+                                <input class="hapus-btn" type="submit" value="Delete">
+                            </form>
+                        </td>
+                    </tr>`;
+                    });
+                    $("#viewKabupaten").html(html);
+                    $('#myTable').DataTable();
+                },
+            });
+        }
+        $(function () {
+            $.ajax({
+                type: "get",
+                url: "http://localhost:3000/kabupaten",
+                success: function (response) {
+                    let html = ""
+                    response.forEach(element => {
+                        html += `<option value="${element.id_kabupaten}">${element.kabupaten}</option>`;
+                    });
+                    $("#kabupaten-select").append(html);
+                }
+            });
+
+            fetchData();
+
+            $(document).on("submit", "#siswaForm", function (event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                const formData = {
+                    fname: $('input[name="fname').val(),
+                    kabupaten_id: $('select[name="kabupaten"]').val(),
+                    kecamatan_id: $('select[name="kecamatan-select"]').val(),
+                    alamat: $('textarea[name="alamat"]').val(),
+                };
+
+                $.ajax({
+                    url: "http://localhost:3000/siswa",
+                    method: "post",
+                    data: formData,
+                    success: function (response) {
+                        // Show success message
+                        $("#message").text("Siswa berhasil ditambahkan");
+                        $("#siswaForm")[0].reset()
+                        fetchData();
+                    },
+                    error: function(error) {
+                        $('#message').text('Error: ' + error.responseText);
+                        alert(error.responseText);
+                    }
+                });
+            });
+
+            $(document).on("change", "select[name='kabupaten']", function (event) {
+                event.preventDefault();
+                const kabupatenId = $(this).val();
+                const kecamatanSelect = $("#kecamatan-select");
+                kecamatanSelect.empty();
+                kecamatanSelect.append("<option disabled selected value=''>Pilih kecamatan</option>");
+
+                $.ajax({
+                    url: `http://localhost:3000/getKecamatanBasedOnKabupaten`,
+                    method: "post",
+                    data: { id_kabupaten: kabupatenId },
+                    dataType: "json",
+                    success: function (response) {
+                        response.forEach(element => {
+                            kecamatanSelect.append(`<option value="${element.id_kecamatan}">${element.kecamatan}</option>`);
+                        });
+                    },
+                    error: function (error) {
+                        console.error(error);
+                    },
+                });
+            })
+
+            $(document).on("submit", "#deleteSiswa", function (event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                const formData = {
+                    id: $(this).find('input[name="id_siswa').val(),
+                };
+                $.ajax({
+                    url: "http://localhost:3000/siswa/delete",
+                    method: "delete",
+                    data: formData,
+                    success: function (response) {
+                        // Show success message
+                        $("#messageDelete").text("Siswa berhasil dihapus");
+                        fetchData();
+                    },
+                });
+            });
+
+        });
+    </script>
+</body>
+
+</html>
