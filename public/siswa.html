@@ -29,6 +29,12 @@
                     <input class="form__input" type="text" id="fname" name="fname" placeholder="Your name..." />
                 </div>
                 <div class="form__linput">
+                    <label class="form__label" for="provinsi-select">Provinsi</label>
+                    <select class="form__select" id="provinsi-select" name="provinsi">
+                        <option disabled selected value="">Pilih provinsi</option>
+                    </select>
+                </div>
+                <div class="form__linput">
                     <label class="form__label" for="kabupaten-select">Kota/Kabupaten</label>
                     <select class="form__select" id="kabupaten-select" name="kabupaten">
                         <option disabled selected value="">Pilih kota/kabupaten</option>
@@ -57,10 +63,11 @@
                     <tr>
                         <th>Id Siswa</th>
                         <th>Nama Siswa</th>
+                        <th>Provinsi</th>
                         <th>Kota/Kabupaten</th>
                         <th>Kecamatan</th>
                         <th>Alamat</th>
-                        <th>Edit</th>
+                        <!-- <th>Edit</th> -->
                         <th>Delete</th>
                     </tr>
                 </thead>
@@ -105,12 +112,11 @@
                         html += `<tr>
                         <td>${no}</td>
                         <td>${element.nama_siswa}</td>
+                        <td>${element.nama_provinsi}</td>
                         <td>${element.kabupaten}</td>
                         <td>${element.kecamatan}</td>
                         <td>${element.alamat}</td>
-                        <td>
-                            <a class="edit-btn" href="http://localhost:3000/siswa_single.html?id_siswa=${element.id_siswa}">Edit</a>
-                        </td>
+                        
                         <td>
                             <form id="deleteSiswa">
                                 <input type="hidden" name="id_siswa" value="${element.id_siswa}">
@@ -122,18 +128,21 @@
                     $("#viewKabupaten").html(html);
                     $('#myTable').DataTable();
                 },
+                // <td>
+                //             <a class="edit-btn" href="http://localhost:3000/siswa_single.html?id_siswa=${element.id_siswa}">Edit</a>
+                //         </td>
             });
         }
         $(function () {
             $.ajax({
                 type: "get",
-                url: "http://localhost:3000/kabupaten",
+                url: "http://localhost:3000/provinsi",
                 success: function (response) {
                     let html = ""
                     response.forEach(element => {
-                        html += `<option value="${element.id_kabupaten}">${element.kabupaten}</option>`;
+                        html += `<option value="${element.id}">${element.nama_provinsi}</option>`;
                     });
-                    $("#kabupaten-select").append(html);
+                    $("#provinsi-select").append(html);
                 }
             });
 
@@ -146,8 +155,11 @@
                     fname: $('input[name="fname').val(),
                     kabupaten_id: $('select[name="kabupaten"]').val(),
                     kecamatan_id: $('select[name="kecamatan-select"]').val(),
+                    provinsi_id: $('select[name="provinsi"]').val(),
                     alamat: $('textarea[name="alamat"]').val(),
                 };
+
+                console.log(formData)
 
                 $.ajax({
                     url: "http://localhost:3000/siswa",
@@ -165,6 +177,31 @@
                     }
                 });
             });
+
+            $(document).on("change", "select[name='provinsi']", function (event) {
+                
+                event.preventDefault();
+                const provinsiId = $(this).val();
+                console.log(provinsiId);
+                const kabupaten = $("#kabupaten-select");
+                kabupaten.empty();
+                kabupaten.append("<option disabled selected value=''>Pilih kabupaten</option>");
+
+                $.ajax({
+                    url: `http://localhost:3000/getKabupatenBasedOnProvinsi`,
+                    method: "post",
+                    data: { id_provinsi: provinsiId },
+                    dataType: "json",
+                    success: function (response) {
+                        response.forEach(element => {
+                            kabupaten.append(`<option value="${element.id_kabupaten}">${element.kabupaten}</option>`);
+                        });
+                    },
+                    error: function (error) {
+                        console.error(error);
+                    },
+                });
+            })
 
             $(document).on("change", "select[name='kabupaten']", function (event) {
                 event.preventDefault();

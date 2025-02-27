@@ -32,7 +32,7 @@ db.connect((err) => {
 
 // Create
 app.post("/siswa", (req, res) => {
-  const user = { nama_siswa: req.body.fname, alamat: req.body.alamat, id_kota: req.body.kabupaten_id, id_kecamatan: req.body.kecamatan_id };
+  const user = { nama_siswa: req.body.fname, alamat: req.body.alamat, id_kota: req.body.kabupaten_id, id_kecamatan: req.body.kecamatan_id, id_provinsi: req.body.provinsi_id };
   if(user.nama_siswa == '' || user.alamat == '' || user.id_kota == '' || user.id_kecamatan == ''){
     return res.status(400).send('Semua data harus diisi');
   }
@@ -54,7 +54,7 @@ app.post("/siswa", (req, res) => {
 
 // Read
 app.get("/siswa", (req, res) => {
-  const sql = "SELECT * FROM siswa INNER JOIN kabupaten ON siswa.id_kota=kabupaten.id_kabupaten INNER JOIN kecamatan ON siswa.id_kecamatan=kecamatan.id_kecamatan;";
+  const sql = "SELECT * FROM siswa INNER JOIN kabupaten ON siswa.id_kota=kabupaten.id_kabupaten INNER JOIN kecamatan ON siswa.id_kecamatan=kecamatan.id_kecamatan INNER JOIN provinsi ON siswa.id_provinsi=provinsi.id;";
   db.query(sql, (err, results) => {
     if (err) throw err;
     res.send(results);
@@ -224,6 +224,14 @@ app.post("/kabupaten", (req, res) => {
       res.send(result);
     });
   });
+
+  app.get("/provinsi", (req, res) => {
+    const sql = "SELECT * FROM provinsi";
+    db.query(sql, (err, results) => {
+      if (err) throw err;
+      res.send(results);
+    });
+  });
 // ================== END REST API CRUD KABUPATEN =====================
 
 // ================== Start Addon API =====================
@@ -236,5 +244,16 @@ app.post('/getKecamatanBasedOnKabupaten', (req, res) => {
         res.send(result)
     })
 })
+
+app.post('/getKabupatenBasedOnProvinsi', (req, res) => {
+  const id = req.body.id_provinsi
+  const sql = "SELECT * FROM kabupaten WHERE id_provinsi = ?"
+  db.query(sql, id, (err, result) => {
+      if (err) throw err
+      res.send(result)
+  })
+})
+
+
 
 // ================== END addon API ======================
